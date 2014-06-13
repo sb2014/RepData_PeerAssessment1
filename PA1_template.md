@@ -17,7 +17,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 1. Load the data into a data.frame - _ActivityData_
 2. Convert 'date' column from _factor_ to _date_ class 
 
-```{r}
+
+```r
 ActivityData <- read.csv("activity.csv")
 ActivityData$date <- as.Date(as.character(ActivityData$date))
 ```
@@ -27,55 +28,65 @@ ActivityData$date <- as.Date(as.character(ActivityData$date))
 _Missing values are ignored for this part of the analysis_
 
 2(a). Make a histogram of the total number of steps taken each day
-```{r}
+
+```r
 DailySteps <- aggregate(ActivityData$steps, by=list(ActivityData$date),FUN=sum)
 colnames(DailySteps) <- c("Date", "TotalSteps")
 hist(DailySteps$TotalSteps, col = "green")
 ```
 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+
 2(b). Calculate and report the mean and median total number of steps taken per day  
     
     
-```{r, results="hide"}
+
+```r
 mean(DailySteps$TotalSteps, na.rm=TRUE)
 median(DailySteps$TotalSteps, na.rm=TRUE)
 ```
-Mean of total steps taken per day is **`r sprintf("%.2f",mean(DailySteps$TotalSteps, na.rm=TRUE))`**  
-Median of total steps taken per day is **`r as.integer(median(DailySteps$TotalSteps, na.rm=TRUE))`**  
+Mean of total steps taken per day is **10766.19**  
+Median of total steps taken per day is **10765**  
 
 
 **Step 3: Explore the average daily activity pattern**  
 
 3(a). Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
+
+```r
 IntervalActivity <- aggregate(ActivityData$steps, by=list(ActivityData$interval),FUN=mean, na.rm=TRUE)
 colnames(IntervalActivity) <- c("Interval","MeanSteps")
 with(IntervalActivity, plot(Interval, MeanSteps, type="l"))
 ```
 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+
 3(b). Identify the 5-minute interval, on average across all the days in the dataset, which contains the maximum number of steps
 
-```{r results="hide"}
+
+```r
 MaxStepsIndex <- which.max(IntervalActivity$MeanSteps)
 MaxStepRow <- IntervalActivity[MaxStepsIndex,]
 MaxStepRow$Interval
 ```
-5-minute interval, which on average contains the the maximum number of steps is **`r MaxStepRow$Interval`**.
+5-minute interval, which on average contains the the maximum number of steps is **835**.
 
 
 **Step 4: Impute missing values and analyze the data again**  
 
 4(a). Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r results="hide"}
+
+```r
 MissingValues <- !complete.cases(ActivityData)
 sum(MissingValues)
 ```
-Total number of rows with missing values (NAs) = **`r sum(MissingValues)`**
+Total number of rows with missing values (NAs) = **2304**
 
 4(b,c). Strategy for filling in all of the missing values in the dataset - The mean for the 5-minute interval has been used, for each missing value of _steps_ variable corresponding to that 5-minute interval. A new dataset _ActivityDataComplete_ will be created, that is equal to the original dataset but with the missing data filled in.
 
-```{r}
+
+```r
 ActivityDataComplete <- ActivityData
 for (i in 1:nrow(ActivityDataComplete)) {
     if(is.na(ActivityDataComplete[i,1])) {
@@ -86,18 +97,22 @@ for (i in 1:nrow(ActivityDataComplete)) {
 
 4(d). Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. 
 
-```{r}
+
+```r
 DailyStepsNew <- aggregate(ActivityDataComplete$steps, by=list(ActivityDataComplete$date),FUN=sum)
 colnames(DailyStepsNew) <- c("Date", "TotalSteps")
 hist(DailyStepsNew$TotalSteps, col = "green")
 ```
 
-``` {r results="hide"}
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+
+
+```r
 mean(DailyStepsNew$TotalSteps, na.rm=TRUE)
 median(DailyStepsNew$TotalSteps, na.rm=TRUE)
 ```
-Mean of total steps taken per day is **`r sprintf("%.2f",mean(DailyStepsNew$TotalSteps, na.rm=TRUE))`**  
-Median of total steps taken per day is **`r as.integer(median(DailyStepsNew$TotalSteps, na.rm=TRUE))`**  
+Mean of total steps taken per day is **10766.19**  
+Median of total steps taken per day is **10766**  
 
 **Do these values differ from the estimates from the first part of the assignment?**  
 **Answer:** These values do not differ from the first par of the assignment.
@@ -111,7 +126,8 @@ Median of total steps taken per day is **`r as.integer(median(DailyStepsNew$Tota
 
 5(a). Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
-```{r}
+
+```r
 ActivityDataComplete$WeekDayFlag <- factor(weekdays(ActivityDataComplete$date) %in% c("Saturday","Sunday"))
 levels(ActivityDataComplete$WeekDayFlag)[levels(ActivityDataComplete$WeekDayFlag)=="TRUE"] <- "weekend"
 levels(ActivityDataComplete$WeekDayFlag)[levels(ActivityDataComplete$WeekDayFlag)=="FALSE"] <- "weekday"
@@ -121,11 +137,14 @@ levels(ActivityDataComplete$WeekDayFlag)[levels(ActivityDataComplete$WeekDayFlag
 
 _Note: 'lattice' library has been used to draw the plot_
 
-```{r}
+
+```r
 IntervalActivityNew <- aggregate(ActivityDataComplete$steps, by=list(ActivityDataComplete$interval, ActivityDataComplete$WeekDayFlag),FUN=mean, na.rm=TRUE)
 colnames(IntervalActivityNew) <- c("Interval","WeekDayFlag","MeanSteps")
 
 library(lattice)
 xyplot(MeanSteps ~ Interval | WeekDayFlag, data = IntervalActivityNew, layout = c(1, 2), type="l", ylab="Number of steps", xlab="Interval")
 ```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
 
